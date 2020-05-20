@@ -55,6 +55,16 @@ enum BoardSide {
     right
 }
 
+class Ball {
+
+    private xPos: number;
+    private yPos: number;
+
+    constructor() {
+        
+    }
+}
+
 class Player {
     private yPos: number;
     private xPos: number; // fixed position
@@ -98,6 +108,16 @@ class Player {
         context.clearRect(this.xPos, this.paddlePadding, this.paddleWidth, 1200);
         context.fillRect(this.xPos, this.yPos + yOffset, this.paddleWidth, this.paddleHeight);
         this.yPos = this.yPos + yOffset;
+    }
+
+    // return [x1, x2, y1, y2]
+    public getCurrentOccupiedCoords(): Array<number> {
+        let coords: Array<number> = [];
+        coords.push(this.xPos) // x1
+        coords.push(this.xPos + this.paddleWidth) // x2
+        coords.push(this.yPos) // y1
+        coords.push(this.yPos + this.paddleHeight) // y2
+        return coords;
     }
 }
 

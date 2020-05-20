@@ -47,6 +47,11 @@ var BoardSide;
     BoardSide[BoardSide["left"] = 0] = "left";
     BoardSide[BoardSide["right"] = 1] = "right";
 })(BoardSide || (BoardSide = {}));
+var Ball = /** @class */ (function () {
+    function Ball() {
+    }
+    return Ball;
+}());
 var Player = /** @class */ (function () {
     function Player(side, isAi) {
         this.paddleWidth = 20; // width of the pong paddle(?)
@@ -83,6 +88,15 @@ var Player = /** @class */ (function () {
         context.clearRect(this.xPos, this.paddlePadding, this.paddleWidth, 1200);
         context.fillRect(this.xPos, this.yPos + yOffset, this.paddleWidth, this.paddleHeight);
         this.yPos = this.yPos + yOffset;
+    };
+    // return [x1, x2, y1, y2]
+    Player.prototype.getCurrentOccupiedCoords = function () {
+        var coords = [];
+        coords.push(this.xPos); // x1
+        coords.push(this.xPos + this.paddleWidth); // x2
+        coords.push(this.yPos); // y1
+        coords.push(this.yPos + this.paddleHeight); // y2
+        return coords;
     };
     return Player;
 }());
