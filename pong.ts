@@ -4,6 +4,7 @@ class PongBoard {
 
     private playerOne: Player;
     private playerTwo: Player;
+    private theBall: Ball;
 
     constructor(playerOneIsAI: boolean, playerTwoIsAI: boolean) {
         let canvas = document.getElementById("pong") as HTMLCanvasElement;
@@ -13,6 +14,7 @@ class PongBoard {
 
         this.playerOne = new Player(BoardSide.left, playerOneIsAI);
         this.playerTwo = new Player(BoardSide.right, playerTwoIsAI);
+        this.theBall = new Ball();
         this.addPlayerMovement();
         this.createBoardSideSplit();
     }
@@ -59,8 +61,17 @@ class Ball {
 
     private xPos: number;
     private yPos: number;
+    private ballRadius: number = 10;
+
+    private context : CanvasRenderingContext2D;
 
     constructor() {
+        let canvas = document.getElementById("pong") as HTMLCanvasElement;
+        let context = canvas.getContext("2d");
+        context.beginPath();
+        context.arc(PongBoard.getCanvasWidth() / 2, PongBoard.getCanvasHeight() / 2,
+            this.ballRadius, 0, 2 * Math.PI);
+        context.stroke();
         
     }
 }

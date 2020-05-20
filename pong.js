@@ -6,6 +6,7 @@ var PongBoard = /** @class */ (function () {
         this.context = context;
         this.playerOne = new Player(BoardSide.left, playerOneIsAI);
         this.playerTwo = new Player(BoardSide.right, playerTwoIsAI);
+        this.theBall = new Ball();
         this.addPlayerMovement();
         this.createBoardSideSplit();
     }
@@ -49,6 +50,12 @@ var BoardSide;
 })(BoardSide || (BoardSide = {}));
 var Ball = /** @class */ (function () {
     function Ball() {
+        this.ballRadius = 10;
+        var canvas = document.getElementById("pong");
+        var context = canvas.getContext("2d");
+        context.beginPath();
+        context.arc(PongBoard.getCanvasWidth() / 2, PongBoard.getCanvasHeight() / 2, this.ballRadius, 0, 2 * Math.PI);
+        context.stroke();
     }
     return Ball;
 }());
