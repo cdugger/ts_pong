@@ -17,6 +17,25 @@ class PongBoard {
         this.theBall = new Ball();
         this.addPlayerMovement();
         this.createBoardSideSplit();
+        this.startGame();
+    }
+
+    private startGame() : void {
+        let theBall = this.theBall;
+        let _this = this;
+        (function ballLoop(counter){
+            console.log(counter);
+            console.log(_this.isColliding(theBall, _this.playerOne));
+            theBall.moveBall();
+            setTimeout(ballLoop,0,counter + 1);
+        })(0);
+    }
+
+    private isColliding(a: Collidable, b: Collidable): boolean {
+        let aCoords : number[] = a.getCollisionCoords();
+        let bCoords : number[] = b.getCollisionCoords();
+
+        return true;
     }
 
     private addPlayerMovement(): void {
@@ -52,33 +71,56 @@ class PongBoard {
 
 }
 
+interface Collidable {
+    getCollisionCoords() : number[];
+}
+
 enum BoardSide {
     left,
     right
 }
 
-class Ball {
+class Ball implements Collidable {
 
     private xPos: number;
     private yPos: number;
+    private currAngle: number;
     private ballRadius: number = 10;
+    private moveIncrement: number = .25;
 
     private context : CanvasRenderingContext2D;
 
     constructor() {
         let canvas = document.getElementById("pong") as HTMLCanvasElement;
         let context = canvas.getContext("2d");
+        this.xPos = PongBoard.getCanvasWidth() / 2;
+        this.yPos = PongBoard.getCanvasHeight() / 2;
         context.beginPath();
-        context.arc(PongBoard.getCanvasWidth() / 2, PongBoard.getCanvasHeight() / 2,
+        context.arc(this.xPos, this.yPos,
             this.ballRadius, 0, 2 * Math.PI);
         context.stroke();
-        
+        this.context = context;
+    }
+
+    getCollisionCoords(): number[] {
+        throw new Error("Method not implemented.");
+    }
+
+    public moveBall() {
+        let context = this.context;
+        context.clearRect(this.xPos - this.ballRadius-1, this.yPos - this.ballRadius-1, this.ballRadius*2, this.ballRadius*2);
+        this.xPos += this.moveIncrement;
+        context.beginPath();
+        context.arc(this.xPos, this.yPos,
+            this.ballRadius, 0, 2 * Math.PI);
+        context.stroke();
     }
 }
 
-class Player {
+class Player implements Collidable {
     private yPos: number;
     private xPos: number; // fixed position
+    private score: number;
     private context : CanvasRenderingContext2D;
 
     private paddleWidth: number = 20; // width of the pong paddle(?)
@@ -102,6 +144,10 @@ class Player {
         }
     }
 
+    getCollisionCoords(): number[] {
+        return [this.xPos, this.xPos + this.paddleWidth, this.yPos, this.yPos + this.paddleHeight];
+    }
+
     public moveUp() : void {
         if(this.yPos - this.moveIncrement >= this.paddlePadding) {
             this.changeYPosBy(-this.moveIncrement);
@@ -119,16 +165,6 @@ class Player {
         context.clearRect(this.xPos, this.paddlePadding, this.paddleWidth, 1200);
         context.fillRect(this.xPos, this.yPos + yOffset, this.paddleWidth, this.paddleHeight);
         this.yPos = this.yPos + yOffset;
-    }
-
-    // return [x1, x2, y1, y2]
-    public getCurrentOccupiedCoords(): Array<number> {
-        let coords: Array<number> = [];
-        coords.push(this.xPos) // x1
-        coords.push(this.xPos + this.paddleWidth) // x2
-        coords.push(this.yPos) // y1
-        coords.push(this.yPos + this.paddleHeight) // y2
-        return coords;
     }
 }
 
