@@ -14,6 +14,7 @@ class PongBoard {
         this.playerOne = new Player(BoardSide.left, playerOneIsAI);
         this.playerTwo = new Player(BoardSide.right, playerTwoIsAI);
         this.addPlayerMovement();
+        this.createBoardSideSplit();
     }
 
     private addPlayerMovement(): void {
@@ -29,6 +30,14 @@ class PongBoard {
                 this.playerTwo.moveDown();
             }
         });
+    }
+
+    private createBoardSideSplit() : void {
+        let context = this.context;
+        context.beginPath();
+        context.moveTo(PongBoard.getCanvasWidth()/2, 0);
+        context.lineTo(PongBoard.getCanvasWidth()/2, PongBoard.getCanvasHeight());
+        context.stroke();
     }
 
     public static getCanvasWidth() : number {

@@ -7,6 +7,7 @@ var PongBoard = /** @class */ (function () {
         this.playerOne = new Player(BoardSide.left, playerOneIsAI);
         this.playerTwo = new Player(BoardSide.right, playerTwoIsAI);
         this.addPlayerMovement();
+        this.createBoardSideSplit();
     }
     PongBoard.prototype.addPlayerMovement = function () {
         var _this = this;
@@ -25,6 +26,13 @@ var PongBoard = /** @class */ (function () {
                 _this.playerTwo.moveDown();
             }
         });
+    };
+    PongBoard.prototype.createBoardSideSplit = function () {
+        var context = this.context;
+        context.beginPath();
+        context.moveTo(PongBoard.getCanvasWidth() / 2, 0);
+        context.lineTo(PongBoard.getCanvasWidth() / 2, PongBoard.getCanvasHeight());
+        context.stroke();
     };
     PongBoard.getCanvasWidth = function () {
         return parseInt(document.getElementById("pong").getAttribute("width"));
