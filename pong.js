@@ -14,17 +14,58 @@ var PongBoard = /** @class */ (function () {
     PongBoard.prototype.startGame = function () {
         var theBall = this.theBall;
         var _this = this;
-        (function ballLoop(counter) {
-            console.log(counter);
-            console.log(_this.isColliding(theBall, _this.playerOne));
+        (function ballLoop() {
+            var ballHitNet = _this.ballHitNet();
+            if (_this.isColliding(theBall, _this.playerOne) || _this.isColliding(theBall, _this.playerTwo)) {
+                console.log(theBall.getCoords().y - _this.playerOne.getCoords().y);
+                theBall.setAngle(theBall.getAngle() + 45);
+                // change direction and angle
+            }
+            else if (ballHitNet != -1) {
+                _this.theBall.clearBall();
+                var currScore = void 0;
+                if (ballHitNet == 0) {
+                    currScore = _this.playerOne.getScore();
+                    _this.playerOne.setScore(currScore + 1);
+                    document.getElementById("p2-score").textContent = (currScore + 1).toString();
+                }
+                else {
+                    currScore = _this.playerTwo.getScore();
+                    _this.playerTwo.setScore(currScore + 1);
+                    document.getElementById("p1-score").textContent = (currScore + 1).toString();
+                }
+                _this.theBall = new Ball();
+                theBall = _this.theBall;
+            }
             theBall.moveBall();
-            setTimeout(ballLoop, 0, counter + 1);
-        })(0);
+            setTimeout(ballLoop, 0);
+        })();
     };
     PongBoard.prototype.isColliding = function (a, b) {
-        var aCoords = a.getCollisionCoords();
-        var bCoords = b.getCollisionCoords();
-        return true;
+        var aCoords = a.getCoords();
+        var bCoords = b.getCoords();
+        if (aCoords.x <= bCoords.x + bCoords.width &&
+            aCoords.x + aCoords.width >= bCoords.x &&
+            aCoords.y < bCoords.y + bCoords.height &&
+            aCoords.y + aCoords.height > bCoords.y) {
+            console.log(aCoords.y - bCoords.y);
+            return true;
+        }
+        return false;
+    };
+    // 0 means player 1 gets a point 1 means player 2 got it. -1 means neither player got it.
+    PongBoard.prototype.ballHitNet = function () {
+        var ballCoords = this.theBall.getCoords();
+        if (ballCoords.x + ballCoords.width <= 0) { // ball is off left side of board
+            return 0;
+        }
+        else if (ballCoords.x - ballCoords.width / 2 >= PongBoard.getCanvasWidth()) { // off right side of board
+            return 1;
+        }
+        return -1;
+    };
+    PongBoard.prototype.ballHitEdge = function () {
+        return false;
     };
     PongBoard.prototype.addPlayerMovement = function () {
         var _this_1 = this;
@@ -43,6 +84,12 @@ var PongBoard = /** @class */ (function () {
                 _this_1.playerTwo.moveDown();
             }
         });
+        canvas.addEventListener("mousemove", function (e) {
+            var rect = canvas.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            console.log("x: " + x + "\n" + "y: " + y + "\n");
+        });
     };
     PongBoard.prototype.createBoardSideSplit = function () {
         var context = this.context;
@@ -59,39 +106,80 @@ var PongBoard = /** @class */ (function () {
     };
     return PongBoard;
 }());
+var Wall = /** @class */ (function () {
+    function Wall(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+    Wall.prototype.getCoords = function () {
+        return { x: this.x, y: this.y, width: this.width, height: this.height };
+    };
+    Wall.up = function () {
+        return new Wall(0, 0, PongBoard.getCanvasWidth(), 1);
+    };
+    Wall.right = function () {
+        return new Wall(PongBoard.getCanvasWidth(), 0, 1, PongBoard.getCanvasHeight());
+    };
+    Wall.down = function () {
+        return new Wall(0, PongBoard.getCanvasHeight(), PongBoard.getCanvasWidth(), 1);
+    };
+    Wall.left = function () {
+        return new Wall(0, 0, 1, PongBoard.getCanvasHeight());
+    };
+    return Wall;
+}());
 var BoardSide;
 (function (BoardSide) {
-    BoardSide[BoardSide["left"] = 0] = "left";
+    BoardSide[BoardSide["up"] = 0] = "up";
     BoardSide[BoardSide["right"] = 1] = "right";
+    BoardSide[BoardSide["down"] = 2] = "down";
+    BoardSide[BoardSide["left"] = 3] = "left";
 })(BoardSide || (BoardSide = {}));
 var Ball = /** @class */ (function () {
     function Ball() {
         this.ballRadius = 10;
-        this.moveIncrement = .25;
+        this.moveIncrement = 1;
         var canvas = document.getElementById("pong");
         var context = canvas.getContext("2d");
         this.xPos = PongBoard.getCanvasWidth() / 2;
         this.yPos = PongBoard.getCanvasHeight() / 2;
+        this.currAngle = 20;
         context.beginPath();
         context.arc(this.xPos, this.yPos, this.ballRadius, 0, 2 * Math.PI);
         context.stroke();
         this.context = context;
     }
-    Ball.prototype.getCollisionCoords = function () {
-        throw new Error("Method not implemented.");
+    Ball.prototype.getCoords = function () {
+        return { x: this.xPos - this.ballRadius, y: this.yPos - this.ballRadius, width: this.ballRadius * 2 + 1, height: this.ballRadius * 2 + 1 };
     };
     Ball.prototype.moveBall = function () {
+        this.clearBall();
         var context = this.context;
-        context.clearRect(this.xPos - this.ballRadius - 1, this.yPos - this.ballRadius - 1, this.ballRadius * 2, this.ballRadius * 2);
-        this.xPos += this.moveIncrement;
+        this.xPos += this.moveIncrement * Math.cos(this.currAngle * Math.PI / 180);
+        this.yPos += this.moveIncrement * Math.sin(this.currAngle * Math.PI / 180);
         context.beginPath();
         context.arc(this.xPos, this.yPos, this.ballRadius, 0, 2 * Math.PI);
+        context.stroke();
+    };
+    Ball.prototype.setAngle = function (angle) {
+        //this.moveIncrement = -this.moveIncrement;
+        this.currAngle = angle;
+    };
+    Ball.prototype.getAngle = function () {
+        return this.currAngle;
+    };
+    Ball.prototype.clearBall = function () {
+        var context = this.context;
+        context.clearRect(this.xPos - this.ballRadius - 2, this.yPos - this.ballRadius - 1, this.ballRadius * 2 + 2, this.ballRadius * 2 + 2);
         context.stroke();
     };
     return Ball;
 }());
 var Player = /** @class */ (function () {
     function Player(side, isAi) {
+        this.score = 0;
         this.paddleWidth = 20; // width of the pong paddle(?)
         this.paddleHeight = 50;
         this.paddlePadding = 20; // distance from edge of board to paddle
@@ -111,8 +199,8 @@ var Player = /** @class */ (function () {
             context.stroke();
         }
     }
-    Player.prototype.getCollisionCoords = function () {
-        return [this.xPos, this.xPos + this.paddleWidth, this.yPos, this.yPos + this.paddleHeight];
+    Player.prototype.getCoords = function () {
+        return { x: this.xPos, y: this.yPos, width: this.paddleWidth, height: this.paddleHeight };
     };
     Player.prototype.moveUp = function () {
         if (this.yPos - this.moveIncrement >= this.paddlePadding) {
@@ -124,9 +212,15 @@ var Player = /** @class */ (function () {
             this.changeYPosBy(this.moveIncrement);
         }
     };
+    Player.prototype.getScore = function () {
+        return this.score;
+    };
+    Player.prototype.setScore = function (newScore) {
+        this.score = newScore;
+    };
     Player.prototype.changeYPosBy = function (yOffset) {
         var context = this.context;
-        context.clearRect(this.xPos, this.paddlePadding, this.paddleWidth, 1200);
+        context.clearRect(this.xPos, this.yPos, this.paddleWidth, this.paddleHeight); //todo
         context.fillRect(this.xPos, this.yPos + yOffset, this.paddleWidth, this.paddleHeight);
         this.yPos = this.yPos + yOffset;
     };
