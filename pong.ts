@@ -24,25 +24,23 @@ class PongBoard {
         let theBall = this.theBall;
         let _this = this;
         (function ballLoop(){
-            let ballHitNet: number = _this.ballHitNet();
             if(_this.isColliding(theBall, _this.playerOne) || _this.isColliding(theBall, _this.playerTwo)) {
                 console.log(theBall.getCoords().y - _this.playerOne.getCoords().y);
                 theBall.setAngle(theBall.getAngle()+45);
                 // change direction and angle
-            } else if(ballHitNet != -1) {
+            } else if(_this.isColliding(theBall, Wall.right())) {
                 _this.theBall.clearBall();
-                let currScore: number;
-                if(ballHitNet == 0) {
-                    currScore = _this.playerOne.getScore();
-                    _this.playerOne.setScore(currScore + 1);
-                    document.getElementById("p2-score").textContent = (currScore + 1).toString();
-                } else {
-                    currScore = _this.playerTwo.getScore();
-                    _this.playerTwo.setScore(currScore + 1);
-                    document.getElementById("p1-score").textContent = (currScore + 1).toString();
-                }
+                _this.playerOne.setScore(_this.playerOne.getScore() + 1);
+                document.getElementById("p1-score").textContent = _this.playerOne.getScore().toString();
                 _this.theBall = new Ball();
                 theBall = _this.theBall;
+            } else if(_this.isColliding(theBall, Wall.left())) {
+                _this.playerTwo.setScore(_this.playerTwo.getScore() + 1);
+                document.getElementById("p2-score").textContent = _this.playerTwo.getScore().toString();
+                _this.theBall = new Ball();
+                theBall = _this.theBall;
+            } else if(_this.isColliding(theBall, Wall.up()) || _this.isColliding(theBall, Wall.down())) {
+                theBall.setAngle(theBall.getAngle()+45);
             }
             theBall.moveBall();
             setTimeout(ballLoop,0);
@@ -71,11 +69,6 @@ class PongBoard {
             return 1;
         }
         return -1;
-    }
-
-    private ballHitEdge(): boolean {
-
-        return false;
     }
 
     private addPlayerMovement(): void {
@@ -187,7 +180,9 @@ class Ball implements Collidable {
         this.xPos = PongBoard.getCanvasWidth() / 2;
         this.yPos = PongBoard.getCanvasHeight() / 2;
         this.currAngle = 20;
+     //   context.fillRect(this.xPos - this.ballRadius-2, this.yPos-this.ballRadius-2, this.ballRadius*2+4, this.ballRadius*2+4);
         context.beginPath();
+   //     context.strokeStyle = "#ffffff";
         context.arc(this.xPos, this.yPos,
             this.ballRadius, 0, 2 * Math.PI);
         context.stroke();
@@ -220,7 +215,8 @@ class Ball implements Collidable {
 
     public clearBall(): void {
         let context = this.context;
-        context.clearRect(this.xPos - this.ballRadius - 2, this.yPos - this.ballRadius - 1, this.ballRadius*2 + 2, this.ballRadius*2 + 2);
+        //context.clearRect(this.xPos - this.ballRadius - 2, this.yPos - this.ballRadius - 1, this.ballRadius*2 + 2, this.ballRadius*2 + 2);
+        context.clearRect(this.xPos - this.ballRadius-2, this.yPos-this.ballRadius-2, this.ballRadius*2+4, this.ballRadius*2+4);
         context.stroke();
     }
 }
